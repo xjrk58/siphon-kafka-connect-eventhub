@@ -2,3 +2,7 @@
 Kafka Connect Azure Event Hub consists of the Sink Connector for streaming data from Kafka to Azure Event Hubs.
 To build, run "mvn package"
 
+# Assumptions about events
+
+- Events with schema will be pushed to Azure Event Hubs as JSON
+- Events without schema will be pushed as binary blob
