@@ -5,6 +5,7 @@ import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.config.ConfigException;
 import org.apache.kafka.connect.data.Struct;
 import org.apache.kafka.connect.json.JsonConverter;
+import org.apache.kafka.connect.json.JsonConverterConfig;
 import org.apache.kafka.connect.sink.SinkRecord;
 import org.apache.kafka.connect.sink.SinkTask;
 import org.slf4j.Logger;
@@ -33,7 +34,7 @@ public class EventHubSinkTask extends SinkTask {
     public void start(Map<String, String> props) {
         log.info("starting EventHubSinkTask");
         EventHubSinkConfig eventHubSinkConfig;
-        valueConvertor.configure(props, false);
+        configureJson();
         try {
             eventHubSinkConfig = new EventHubSinkConfig(props);
         } catch (ConfigException ex) {
@@ -59,7 +60,8 @@ public class EventHubSinkTask extends SinkTask {
                 sendEvent = extractEventData(record);
                 // pick an event hub client to send the data asynchronously
                 ehClient = ehClients.take();
-                resultSet.add(sendAsync(ehClient, sendEvent));
+                if (sendEvent != null)
+                    resultSet.add(sendAsync(ehClient, sendEvent));
             } catch (InterruptedException ex) {
                 throw new ConnectException("EventHubSinkTask interrupted while waiting to acquire client", ex);
             }
@@ -119,12 +121,17 @@ public class EventHubSinkTask extends SinkTask {
         }
     }
 
+    private void configureJson() {
+        Map<String, Object> configMap = new HashMap<>();
+        configMap.put(JsonConverterConfig.SCHEMAS_ENABLE_CONFIG, false);
+        valueConvertor.configure(configMap, false);
+    }
+
     private EventData extractEventData(SinkRecord record) {
         EventData eventData = null;
         if (record.value() instanceof byte[]) {
             eventData = EventData.create((byte[]) record.value());
-        }
-        else if (record.value() instanceof EventData) {
+        } else if (record.value() instanceof EventData) {
             eventData = (EventData) record.value();
         } else if (record.value() instanceof Struct) {
             try {
@@ -133,10 +140,9 @@ public class EventHubSinkTask extends SinkTask {
             } catch (Exception ex) {
                 throw new ConnectException("Unable to process record="+ record.toString(), ex);
             }
-        } else {
+        } else if (record.value() != null) {
             throw new ConnectException("Data format is unsupported for EventHubSinkType [class=" + record.value().getClass().getCanonicalName()+"]");
         }
-
         return eventData;
     }
 
