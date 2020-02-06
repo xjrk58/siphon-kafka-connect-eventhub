@@ -1,11 +1,4 @@
-# Kafka Connect Azure Event Hub
+# Kafka Connect Azure Event Hub  [ ![Download](https://api.bintray.com/packages/xjrk58/org.github.xjrk58/azure-eventhub-connector/images/download.svg?version=2.3.1) ](https://bintray.com/xjrk58/org.github.xjrk58/azure-eventhub-connector/2.3.1/link)
 Kafka Connect Azure Event Hub consists of the Sink Connector for streaming data from Kafka to Azure Event Hubs.
 To build, run "mvn package"
 
-## Contribute Code
-
-If you want to contribute, we ask you to sign a [CLA](https://cla.microsoft.com/)(Contribution License Agreement). A
-friendly bot will remind you about it when you submit a pull-request.
-
-If you are sending a pull request, we kindly request to check the code style with IntelliJ IDEA, importing the settings
-from `Codestyle.IntelliJ.xml`.

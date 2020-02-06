@@ -2,9 +2,9 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.microsoft.kafkaconnectors</groupId>
+    <groupId>org.github.xjrk58</groupId>
     <artifactId>azure-eventhub-connector</artifactId>
-    <version>2.3.1</version>
+    <version>${env.RELEASE_VERSION}</version>
     <packaging>jar</packaging>
 
     <name>azure-eventhub-connector</name>
@@ -94,8 +94,9 @@
 
     <distributionManagement>
         <repository>
-            <id>microsoft-siphon-java-visualstudio.com-siphonsdk</id>
-            <url>https://microsoft-siphon-java.pkgs.visualstudio.com/_packaging/SiphonSDK/maven/v1</url>
+            <id>bintray-xjrk58-org.github.xjrk58</id>
+            <name>xjrk58-org.github.xjrk58</name>
+            <url>https://api.bintray.com/maven/xjrk58/org.github.xjrk58/azure-eventhub-connector/;publish=1</url>
         </repository>
     </distributionManagement>
 
