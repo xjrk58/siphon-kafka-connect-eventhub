@@ -1,6 +1,6 @@
 package com.microsoft.azure.eventhubs.kafka.connect.sink;
 
-import com.microsoft.azure.servicebus.ServiceBusException;
+import com.microsoft.azure.eventhubs.impl.EventDataImpl;
 import org.apache.kafka.clients.consumer.OffsetAndMetadata;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.config.ConfigException;
@@ -13,10 +13,7 @@ import java.io.IOException;
 import org.apache.kafka.connect.errors.ConnectException;
 
 import java.util.*;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.*;
 
 import com.microsoft.azure.eventhubs.*;
 
@@ -24,6 +21,7 @@ public class EventHubSinkTask extends SinkTask {
     // List of EventHubClient objects to be used during data upload
     private BlockingQueue<EventHubClient> ehClients;
     private static final Logger log = LoggerFactory.getLogger(EventHubSinkTask.class);
+    private static final ScheduledExecutorService executorService = new ScheduledThreadPoolExecutor(2);
 
     public String version() {
         return new EventHubSinkConnector().version();
@@ -93,8 +91,8 @@ public class EventHubSinkTask extends SinkTask {
         return ehClient.send(sendEvent);
     }
 
-    protected EventHubClient getEventHubClientFromConnectionString(String connectionString) throws ServiceBusException, IOException {
-        return EventHubClient.createFromConnectionStringSync(connectionString);
+    protected EventHubClient getEventHubClientFromConnectionString(String connectionString) throws EventHubException, IOException {
+        return EventHubClient.createFromConnectionStringSync(connectionString, executorService);
     }
 
     protected int getClientCount() {
@@ -113,7 +111,7 @@ public class EventHubSinkTask extends SinkTask {
                 ehClients.offer(getEventHubClientFromConnectionString(connectionString));
                 log.info("Created an Event Hub Client");
             }
-        } catch (ServiceBusException | IOException ex) {
+        } catch (EventHubException | IOException ex) {
             throw new ConnectException("Exception while creating Event Hub client", ex);
         }
     }
@@ -121,7 +119,7 @@ public class EventHubSinkTask extends SinkTask {
     private EventData extractEventData(SinkRecord record) {
         EventData eventData;
         if (record.value() instanceof byte[]) {
-            eventData = new EventData((byte[]) record.value());
+            eventData = new EventDataImpl((byte[]) record.value());
         }
         else if (record.value() instanceof EventData) {
             eventData = (EventData) record.value();

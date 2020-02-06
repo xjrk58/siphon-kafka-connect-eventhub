@@ -2,6 +2,7 @@ package com.microsoft.azure.eventhubs.kafka.connect.sink;
 
 import com.microsoft.azure.eventhubs.EventData;
 import com.microsoft.azure.eventhubs.EventHubClient;
+import com.microsoft.azure.eventhubs.impl.EventDataImpl;
 import org.apache.kafka.connect.sink.SinkRecord;
 import org.junit.Before;
 import org.junit.Test;
@@ -65,7 +66,7 @@ public class EventHubSinkTaskTest {
         LinkedList<SinkRecord> recordList = new LinkedList<>();
         for(int i = 0; i < count; i++) {
             recordList.add(new SinkRecord("topic1", -1, null, null, null,
-                    asEventData? new EventData("testdata1".getBytes()) : "testdata1".getBytes(), -1));
+                    asEventData? new EventDataImpl("testdata1".getBytes()) : "testdata1".getBytes(), -1));
         }
         return recordList;
     }

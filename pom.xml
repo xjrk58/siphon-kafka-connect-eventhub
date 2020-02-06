@@ -4,7 +4,7 @@
 
     <groupId>com.microsoft.kafkaconnectors</groupId>
     <artifactId>azure-eventhub-connector</artifactId>
-    <version>1.11</version>
+    <version>2.3.1</version>
     <packaging>jar</packaging>
 
     <name>azure-eventhub-connector</name>
@@ -19,26 +19,26 @@
         <dependency>
             <groupId>org.apache.kafka</groupId>
             <artifactId>connect-api</artifactId>
-            <version>0.11.0.0</version>
+            <version>2.3.1</version>
             <scope>provided</scope>
         </dependency>
         <!-- https://mvnrepository.com/artifact/com.microsoft.azure/azure-eventhubs -->
         <dependency>
             <groupId>com.microsoft.azure</groupId>
             <artifactId>azure-eventhubs</artifactId>
-            <version>0.14.5</version>
+            <version>3.0.2</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.12</version>
+            <version>4.13</version>
             <scope>test</scope>
         </dependency>
         <!-- https://mvnrepository.com/artifact/org.mockito/mockito-all -->
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-all</artifactId>
-            <version>1.9.5</version>
+            <version>1.10.19</version>
             <scope>test</scope>
         </dependency>
         <!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-api -->
@@ -96,12 +96,6 @@
         <repository>
             <id>microsoft-siphon-java-visualstudio.com-siphonsdk</id>
             <url>https://microsoft-siphon-java.pkgs.visualstudio.com/_packaging/SiphonSDK/maven/v1</url>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
         </repository>
     </distributionManagement>
 
