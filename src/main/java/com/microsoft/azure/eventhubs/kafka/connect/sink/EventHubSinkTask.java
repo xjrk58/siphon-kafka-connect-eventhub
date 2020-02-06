@@ -1,9 +1,10 @@
 package com.microsoft.azure.eventhubs.kafka.connect.sink;
 
-import com.microsoft.azure.eventhubs.impl.EventDataImpl;
 import org.apache.kafka.clients.consumer.OffsetAndMetadata;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.config.ConfigException;
+import org.apache.kafka.connect.data.Struct;
+import org.apache.kafka.connect.json.JsonConverter;
 import org.apache.kafka.connect.sink.SinkRecord;
 import org.apache.kafka.connect.sink.SinkTask;
 import org.slf4j.Logger;
@@ -20,8 +21,9 @@ import com.microsoft.azure.eventhubs.*;
 public class EventHubSinkTask extends SinkTask {
     // List of EventHubClient objects to be used during data upload
     private BlockingQueue<EventHubClient> ehClients;
+    private JsonConverter valueConvertor = new JsonConverter();
     private static final Logger log = LoggerFactory.getLogger(EventHubSinkTask.class);
-    private static final ScheduledExecutorService executorService = new ScheduledThreadPoolExecutor(2);
+    private static final ScheduledExecutorService executorService = new ScheduledThreadPoolExecutor(4);
 
     public String version() {
         return new EventHubSinkConnector().version();
@@ -31,6 +33,7 @@ public class EventHubSinkTask extends SinkTask {
     public void start(Map<String, String> props) {
         log.info("starting EventHubSinkTask");
         EventHubSinkConfig eventHubSinkConfig;
+        valueConvertor.configure(props, false);
         try {
             eventHubSinkConfig = new EventHubSinkConfig(props);
         } catch (ConfigException ex) {
@@ -117,15 +120,21 @@ public class EventHubSinkTask extends SinkTask {
     }
 
     private EventData extractEventData(SinkRecord record) {
-        EventData eventData;
+        EventData eventData = null;
         if (record.value() instanceof byte[]) {
-            eventData = new EventDataImpl((byte[]) record.value());
+            eventData = EventData.create((byte[]) record.value());
         }
         else if (record.value() instanceof EventData) {
             eventData = (EventData) record.value();
-        }
-        else {
-            throw new ConnectException("Data format is unsupported for EventHubSinkType");
+        } else if (record.value() instanceof Struct) {
+            try {
+                byte[] bytes = valueConvertor.fromConnectData(record.topic(), record.valueSchema(), record.value());
+                eventData = EventData.create(bytes);
+            } catch (Exception ex) {
+                throw new ConnectException("Unable to process record="+ record.toString(), ex);
+            }
+        } else {
+            throw new ConnectException("Data format is unsupported for EventHubSinkType [class=" + record.value().getClass().getCanonicalName()+"]");
         }
 
         return eventData;
