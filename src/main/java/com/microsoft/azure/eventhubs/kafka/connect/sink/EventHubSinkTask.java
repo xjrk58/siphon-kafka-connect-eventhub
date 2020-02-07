@@ -3,9 +3,6 @@ package com.microsoft.azure.eventhubs.kafka.connect.sink;
 import org.apache.kafka.clients.consumer.OffsetAndMetadata;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.config.ConfigException;
-import org.apache.kafka.connect.data.Struct;
-import org.apache.kafka.connect.json.JsonConverter;
-import org.apache.kafka.connect.json.JsonConverterConfig;
 import org.apache.kafka.connect.sink.SinkRecord;
 import org.apache.kafka.connect.sink.SinkTask;
 import org.slf4j.Logger;
@@ -22,7 +19,7 @@ import com.microsoft.azure.eventhubs.*;
 public class EventHubSinkTask extends SinkTask {
     // List of EventHubClient objects to be used during data upload
     private BlockingQueue<EventHubClient> ehClients;
-    private JsonConverter valueConvertor = new JsonConverter();
+    private EventDataExtractor extractor = new EventDataExtractor();
     private static final Logger log = LoggerFactory.getLogger(EventHubSinkTask.class);
     private static final ScheduledExecutorService executorService = new ScheduledThreadPoolExecutor(4);
 
@@ -34,7 +31,6 @@ public class EventHubSinkTask extends SinkTask {
     public void start(Map<String, String> props) {
         log.info("starting EventHubSinkTask");
         EventHubSinkConfig eventHubSinkConfig;
-        configureJson();
         try {
             eventHubSinkConfig = new EventHubSinkConfig(props);
         } catch (ConfigException ex) {
@@ -57,7 +53,7 @@ public class EventHubSinkTask extends SinkTask {
             EventData sendEvent = null;
             EventHubClient ehClient = null;
             try {
-                sendEvent = extractEventData(record);
+                sendEvent = extractor.extractEventData(record);
                 // pick an event hub client to send the data asynchronously
                 ehClient = ehClients.take();
                 if (sendEvent != null)
@@ -119,31 +115,6 @@ public class EventHubSinkTask extends SinkTask {
         } catch (EventHubException | IOException ex) {
             throw new ConnectException("Exception while creating Event Hub client", ex);
         }
-    }
-
-    private void configureJson() {
-        Map<String, Object> configMap = new HashMap<>();
-        configMap.put(JsonConverterConfig.SCHEMAS_ENABLE_CONFIG, false);
-        valueConvertor.configure(configMap, false);
-    }
-
-    private EventData extractEventData(SinkRecord record) {
-        EventData eventData = null;
-        if (record.value() instanceof byte[]) {
-            eventData = EventData.create((byte[]) record.value());
-        } else if (record.value() instanceof EventData) {
-            eventData = (EventData) record.value();
-        } else if (record.value() instanceof Struct) {
-            try {
-                byte[] bytes = valueConvertor.fromConnectData(record.topic(), record.valueSchema(), record.value());
-                eventData = EventData.create(bytes);
-            } catch (Exception ex) {
-                throw new ConnectException("Unable to process record="+ record.toString(), ex);
-            }
-        } else if (record.value() != null) {
-            throw new ConnectException("Data format is unsupported for EventHubSinkType [class=" + record.value().getClass().getCanonicalName()+"]");
-        }
-        return eventData;
     }
 
     private void waitForAllUploads(List<CompletableFuture<Void>> resultSet) {
