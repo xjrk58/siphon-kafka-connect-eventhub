@@ -27,6 +27,21 @@ public class EventHubSinkConfig extends AbstractConfig {
     public static final String SERIALIZATION_TYPE = "eventhub.serialization";
 
     /**
+     * EventHub authentication provider. Valid values are SAS or JWT from filesystem.
+     */
+    public static final String AUTHENTICATION_PROVIDER = "eventhub.authentication";
+
+    /**
+     * EventHub SAS (default) authentication provider = "SAS";
+     */
+    public static final String SAS_AUTHENTICATION_PROVIDER = "SAS";
+
+    /**
+     * EventHub SAS (default) authentication provider = "JWT";
+     */
+    public static final String JWT_AUTHENTICATION_PROVIDER = "JWT";
+
+    /**
      * Send all structured events to EventHub as JSON
      */
     public static final String SERIALIZATION_JSON = "json";
@@ -39,7 +54,9 @@ public class EventHubSinkConfig extends AbstractConfig {
             .define(CLIENTS_PER_TASK, Type.SHORT, defaultClientsPerTask, Importance.HIGH,
                     "Number of Event Hub clients to use per task")
             .define(SERIALIZATION_TYPE, Type.STRING, SERIALIZATION_JSON, Importance.LOW,
-                    "Method of serialization of structured events with schema to EventHub");
+                    "Method of serialization of structured events with schema to EventHub")
+            .define(AUTHENTICATION_PROVIDER, Type.STRING, SAS_AUTHENTICATION_PROVIDER, Importance.HIGH,
+                    "Method of EventHub authentication");
 
     public EventHubSinkConfig(Map<String, String> configValues) {
         super(CONFIG_DEF, configValues);
