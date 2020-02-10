@@ -26,6 +26,8 @@ public class EventHubSinkTaskTest {
 
     @Spy
     public EventHubSinkTask spyEventHubSinkTask;
+    @Spy
+    public EventHubClientProvider spyClientProvider;
 
     @Before
     public void testSetup() throws Exception {
@@ -33,7 +35,8 @@ public class EventHubSinkTaskTest {
         CompletableFuture<Void> cf = new CompletableFuture<Void>();
         cf.complete(null);
         doReturn(cf).when(spyEventHubSinkTask).sendAsync(any(EventHubClient.class), any(EventData.class));
-        doReturn(mock(EventHubClient.class)).when(spyEventHubSinkTask).getEventHubClientFromConnectionString(anyString());
+        doReturn(mock(EventHubClient.class)).when(spyClientProvider).newInstance();
+        doReturn(spyClientProvider).when(spyEventHubSinkTask).getClientProvider(anyString(), anyString());
     }
 
     @Test

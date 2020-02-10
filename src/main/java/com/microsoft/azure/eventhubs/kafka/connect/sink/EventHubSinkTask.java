@@ -20,8 +20,8 @@ public class EventHubSinkTask extends SinkTask {
     // List of EventHubClient objects to be used during data upload
     private BlockingQueue<EventHubClient> ehClients;
     private EventDataExtractor extractor = new EventDataExtractor();
+    private EventHubClientProvider provider;
     private static final Logger log = LoggerFactory.getLogger(EventHubSinkTask.class);
-    private static final ScheduledExecutorService executorService = new ScheduledThreadPoolExecutor(4);
 
     public String version() {
         return new EventHubSinkConnector().version();
@@ -41,8 +41,9 @@ public class EventHubSinkTask extends SinkTask {
         log.info("connection string = {}", connectionString);
         short clientsPerTask = eventHubSinkConfig.getShort(EventHubSinkConfig.CLIENTS_PER_TASK);
         log.info("clients per task = {}", clientsPerTask);
-
-        initializeEventHubClients(connectionString, clientsPerTask);
+        String authType = eventHubSinkConfig.getString(EventHubSinkConfig.AUTHENTICATION_PROVIDER);
+        log.info("client auth provider = {}", authType);
+        initializeEventHubClients(authType, connectionString, clientsPerTask);
     }
 
     @Override
@@ -92,9 +93,7 @@ public class EventHubSinkTask extends SinkTask {
         return ehClient.send(sendEvent);
     }
 
-    protected EventHubClient getEventHubClientFromConnectionString(String connectionString) throws EventHubException, IOException {
-        return EventHubClient.createFromConnectionStringSync(connectionString, executorService);
-    }
+
 
     protected int getClientCount() {
         if(ehClients != null) {
@@ -105,16 +104,21 @@ public class EventHubSinkTask extends SinkTask {
         }
     }
 
-    private void initializeEventHubClients(String connectionString, short clientsPerTask) {
+    private void initializeEventHubClients(String authType, String connectionString, short clientsPerTask) {
         ehClients = new LinkedBlockingQueue<EventHubClient>(clientsPerTask);
+        provider = getClientProvider(authType, connectionString);
         try {
             for (short i = 0; i < clientsPerTask; i++) {
-                ehClients.offer(getEventHubClientFromConnectionString(connectionString));
+                ehClients.offer(provider.newInstance());
                 log.info("Created an Event Hub Client");
             }
         } catch (EventHubException | IOException ex) {
             throw new ConnectException("Exception while creating Event Hub client", ex);
         }
+    }
+
+    protected EventHubClientProvider getClientProvider(String authType, String connectionString) {
+        return new EventHubClientProvider(authType, connectionString);
     }
 
     private void waitForAllUploads(List<CompletableFuture<Void>> resultSet) {
