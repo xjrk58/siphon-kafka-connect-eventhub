@@ -3,6 +3,7 @@ package com.microsoft.azure.eventhubs.kafka.connect.sink;
 import com.microsoft.azure.eventhubs.ITokenProvider;
 import com.microsoft.azure.eventhubs.JsonSecurityToken;
 import com.microsoft.azure.eventhubs.SecurityToken;
+import com.microsoft.azure.eventhubs.impl.ClientConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,7 +34,7 @@ public class TokenFilesystemProvider implements ITokenProvider  {
             try {
               log.info("Loading token for resource={} from {}", resource, baseDirectory);
               // The whole token should fit on one line
-              return new JsonSecurityToken(Files.readAllLines(getResourcePath(resource)).get(0), resource);
+              return new JsonSecurityToken(Files.readAllLines(getResourcePath(resource)).get(0), ClientConstants.EVENTHUBS_AUDIENCE);
             } catch (ParseException|IOException ex) {
                 throw  new RuntimeException(ex);
             }});
