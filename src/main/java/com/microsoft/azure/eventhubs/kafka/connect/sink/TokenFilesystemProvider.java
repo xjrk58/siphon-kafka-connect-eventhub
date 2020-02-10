@@ -32,6 +32,7 @@ public class TokenFilesystemProvider implements ITokenProvider  {
         return CompletableFuture.supplyAsync(() -> {
             try {
               log.info("Loading token for resource={} from {}", resource, baseDirectory);
+              // The whole token should fit on one line
               return new JsonSecurityToken(Files.readAllLines(getResourcePath(resource)).get(0), resource);
             } catch (ParseException|IOException ex) {
                 throw  new RuntimeException(ex);
@@ -39,6 +40,7 @@ public class TokenFilesystemProvider implements ITokenProvider  {
     }
 
     private Path getResourcePath(String resource) {
+        // Use path with stripped of amqp:/
         return Paths.get(baseDirectory, resource.substring(resource.indexOf("/")));
     }
 
