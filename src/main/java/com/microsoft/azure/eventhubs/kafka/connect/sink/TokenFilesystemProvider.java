@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.ParseException;
 import java.time.Duration;
@@ -31,10 +32,14 @@ public class TokenFilesystemProvider implements ITokenProvider  {
         return CompletableFuture.supplyAsync(() -> {
             try {
               log.info("Loading token for resource={} from {}", resource, baseDirectory);
-              return new JsonSecurityToken(Files.readAllLines(Paths.get(baseDirectory, resource)).get(0), resource);
+              return new JsonSecurityToken(Files.readAllLines(getResourcePath(resource)).get(0), resource);
             } catch (ParseException|IOException ex) {
                 throw  new RuntimeException(ex);
             }});
+    }
+
+    private Path getResourcePath(String resource) {
+        return Paths.get(baseDirectory, resource.substring(resource.indexOf("/")));
     }
 
 }
