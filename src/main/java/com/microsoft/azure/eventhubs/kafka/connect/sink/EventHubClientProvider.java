@@ -25,10 +25,10 @@ public class EventHubClientProvider {
     }
 
     public EventHubClient newInstance() throws EventHubException, IOException {
-        if (authenticationProvider == EventHubSinkConfig.SAS_AUTHENTICATION_PROVIDER) {
-            return getEventHubClientFromConnectionString();
-        } else {
+        if (authenticationProvider == EventHubSinkConfig.JWT_AUTHENTICATION_PROVIDER) {
             return getEventHubClientFromRefreshToken();
+        } else {
+            return getEventHubClientFromConnectionString();
         }
     }
 
