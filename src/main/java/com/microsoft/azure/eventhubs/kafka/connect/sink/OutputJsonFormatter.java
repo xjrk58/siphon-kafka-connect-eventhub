@@ -80,7 +80,7 @@ public class OutputJsonFormatter {
             public Object convert(Schema schema, Object value) {
                 if (!(value instanceof java.util.Date))
                     throw new DataException("Invalid type for Timestamp, expected Date but was " + value.getClass());
-                return DATE_TIME_FORMAT.format(LocalDateTime.ofInstant(Instant.ofEpochMilli(Timestamp.fromLogical(schema, (java.util.Date) value)), ZoneId.systemDefault()));
+                return DATE_TIME_FORMAT.format(LocalDateTime.ofInstant(Instant.ofEpochMilli(Timestamp.fromLogical(schema, (java.util.Date) value)), ZoneId.of("UTC")));
             }
         });
     }
