@@ -44,6 +44,7 @@ public class EventHubSinkTask extends SinkTask {
         String authType = eventHubSinkConfig.getString(EventHubSinkConfig.AUTHENTICATION_PROVIDER);
         log.info("client auth provider = {}", authType);
         initializeEventHubClients(authType, connectionString, clientsPerTask);
+        extractor.configureJson(props);
     }
 
     @Override
@@ -109,6 +110,7 @@ public class EventHubSinkTask extends SinkTask {
         provider = getClientProvider(authType, connectionString);
         try {
             for (short i = 0; i < clientsPerTask; i++) {
+                log.info("Creating event hub client authType=%s, connectionString=%s", authType, connectionString);
                 ehClients.offer(provider.newInstance());
                 log.info("Created an Event Hub Client");
             }
