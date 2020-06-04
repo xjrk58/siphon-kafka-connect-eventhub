@@ -1,17 +1,11 @@
 package com.microsoft.azure.eventhubs.kafka.connect.sink;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.fasterxml.jackson.databind.node.NullNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.kafka.connect.data.*;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import java.time.Instant;
-import java.util.HashMap;
-import java.util.Map;
 
 @RunWith(MockitoJUnitRunner.class)
 public class OutputJsonSerializerTest {
@@ -34,6 +28,7 @@ public class OutputJsonSerializerTest {
         OutputJsonFormatter serializer = new OutputJsonFormatter();
         byte[] data = serializer.fromConnectData("test", simpleSchema, simpleStruct);
         String dataStr = new String(data);
+        System.out.println(dataStr);
         assert dataStr.contentEquals("{\"textField\":\"test\",\"boolField\":false,\"timestampField\":\"2020-06-04T15:36:17.159\"}");
     }
 

@@ -21,6 +21,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+import static java.time.LocalDate.*;
+
 /*
   Allows conversion to
  */
@@ -69,7 +71,7 @@ public class OutputJsonFormatter {
             public Object convert(Schema schema, Object value) {
                 if (!(value instanceof java.util.Date))
                     throw new DataException("Invalid type for Time, expected Date but was " + value.getClass());
-                return DATE_FORMAT.format(LocalDate.ofInstant(Instant.ofEpochMilli(Time.fromLogical(schema, (java.util.Date) value)), ZoneId.systemDefault()));
+                return DATE_FORMAT.format(LocalDate.from(Instant.ofEpochMilli(Time.fromLogical(schema, (java.util.Date) value))));
             }
         });
 
