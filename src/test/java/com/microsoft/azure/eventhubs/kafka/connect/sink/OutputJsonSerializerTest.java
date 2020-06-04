@@ -29,7 +29,7 @@ public class OutputJsonSerializerTest {
         byte[] data = serializer.fromConnectData("test", simpleSchema, simpleStruct);
         String dataStr = new String(data);
         System.out.println(dataStr);
-        assert dataStr.contentEquals("{\"textField\":\"test\",\"boolField\":false,\"timestampField\":\"2020-06-04T15:36:17.159\"}");
+        assert dataStr.contentEquals("{\"textField\":\"test\",\"boolField\":false,\"timestampField\":\"2020-06-04T13:36:17.159\"}");
     }
 
 }
