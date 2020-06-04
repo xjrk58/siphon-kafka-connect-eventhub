@@ -3,11 +3,13 @@ package com.microsoft.azure.eventhubs.kafka.connect.sink;
 import com.microsoft.azure.eventhubs.ITokenProvider;
 import com.microsoft.azure.eventhubs.JsonSecurityToken;
 import com.microsoft.azure.eventhubs.SecurityToken;
+import com.microsoft.azure.eventhubs.impl.ClientConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.ParseException;
 import java.time.Duration;
@@ -31,10 +33,16 @@ public class TokenFilesystemProvider implements ITokenProvider  {
         return CompletableFuture.supplyAsync(() -> {
             try {
               log.info("Loading token for resource={} from {}", resource, baseDirectory);
-              return new JsonSecurityToken(Files.readAllLines(Paths.get(baseDirectory, resource)).get(0), resource);
+              // The whole token should fit on one line
+              return new JsonSecurityToken(Files.readAllLines(getResourcePath(resource)).get(0), ClientConstants.EVENTHUBS_AUDIENCE);
             } catch (ParseException|IOException ex) {
                 throw  new RuntimeException(ex);
             }});
+    }
+
+    private Path getResourcePath(String resource) {
+        // Use path with stripped of amqp:/
+        return Paths.get(baseDirectory, resource.substring(resource.indexOf("/")));
     }
 
 }

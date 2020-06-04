@@ -4,19 +4,15 @@ import com.microsoft.azure.eventhubs.EventData;
 import org.apache.kafka.connect.data.Schema;
 import org.apache.kafka.connect.data.Struct;
 import org.apache.kafka.connect.errors.ConnectException;
-import org.apache.kafka.connect.json.JsonConverter;
-import org.apache.kafka.connect.json.JsonConverterConfig;
 import org.apache.kafka.connect.sink.SinkRecord;
 
-import java.util.HashMap;
 import java.util.Map;
 
 public class EventDataExtractor {
 
-    private JsonConverter valueConvertor = new JsonConverter();
+    private OutputJsonFormatter valueConvertor = new OutputJsonFormatter();
 
     public EventDataExtractor() {
-        configureJson();
     }
 
     private EventData structToEventData(String topic, Schema schema, Struct struct) {
@@ -42,9 +38,7 @@ public class EventDataExtractor {
         return eventData;
     }
 
-    private void configureJson() {
-        Map<String, Object> configMap = new HashMap<>();
-        configMap.put(JsonConverterConfig.SCHEMAS_ENABLE_CONFIG, false);
-        valueConvertor.configure(configMap, false);
+    public void configureJson(Map<String, ?> jsonConfigMap) {
+        valueConvertor.configure(jsonConfigMap);
     }
 }
