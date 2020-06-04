@@ -12,6 +12,10 @@ import org.apache.kafka.connect.storage.StringConverterConfig;
 
 import java.math.BigDecimal;
 import java.nio.ByteBuffer;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 import java.util.HashMap;
@@ -23,8 +27,9 @@ import java.util.Map;
 public class OutputJsonFormatter {
 
     public OutputJsonFormatter() {}
-    private DateTimeFormatter dateTimeFormat = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
-    private DateTimeFormatter dateFormat = DateTimeFormatter.ISO_LOCAL_DATE;
+    // TODO: fix this if we want to have multiple instances of formatters
+    private static final DateTimeFormatter DATE_TIME_FORMAT= DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+    private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ISO_LOCAL_DATE;
     private boolean skipNulls = true;
 
     private final OutputJsonSerializer serializer = new OutputJsonSerializer();
@@ -34,8 +39,8 @@ public class OutputJsonFormatter {
         conf.put(StringConverterConfig.TYPE_CONFIG, ConverterType.VALUE.getName());
         OutputJsonFormatterConfig config = new OutputJsonFormatterConfig(conf);
         skipNulls = config.enableSkipNulls();
-        dateFormat = config.dateFormat();
-        dateTimeFormat = config.dateTimeFormat();
+        // dateFormat = config.dateFormat();
+        // dateTimeFormat = config.dateTimeFormat();
         serializer.configure(conf, false);
     }
 
@@ -64,7 +69,7 @@ public class OutputJsonFormatter {
             public Object convert(Schema schema, Object value) {
                 if (!(value instanceof java.util.Date))
                     throw new DataException("Invalid type for Time, expected Date but was " + value.getClass());
-                return Time.fromLogical(schema, (java.util.Date) value);
+                return DATE_FORMAT.format(LocalDate.ofInstant(Instant.ofEpochMilli(Time.fromLogical(schema, (java.util.Date) value)), ZoneId.systemDefault()));
             }
         });
 
@@ -73,7 +78,7 @@ public class OutputJsonFormatter {
             public Object convert(Schema schema, Object value) {
                 if (!(value instanceof java.util.Date))
                     throw new DataException("Invalid type for Timestamp, expected Date but was " + value.getClass());
-                return Timestamp.fromLogical(schema, (java.util.Date) value);
+                return DATE_TIME_FORMAT.format(LocalDateTime.ofInstant(Instant.ofEpochMilli(Timestamp.fromLogical(schema, (java.util.Date) value)), ZoneId.systemDefault()));
             }
         });
     }
@@ -122,6 +127,9 @@ public class OutputJsonFormatter {
                     throw new DataException("Java class " + value.getClass() + " does not have corresponding schema type.");
             } else {
                 schemaType = schema.type();
+            }
+            if (value instanceof String) {
+                return JsonNodeFactory.instance.textNode((String)value);
             }
             switch (schemaType) {
                 case INT8:
