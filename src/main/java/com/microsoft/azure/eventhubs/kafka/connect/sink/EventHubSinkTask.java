@@ -95,7 +95,6 @@ public class EventHubSinkTask extends SinkTask {
     }
 
 
-
     protected int getClientCount() {
         if(ehClients != null) {
             return ehClients.size();
@@ -114,8 +113,12 @@ public class EventHubSinkTask extends SinkTask {
                 ehClients.offer(provider.newInstance());
                 log.info("Created an Event Hub Client");
             }
-        } catch (EventHubException | IOException ex) {
-            throw new ConnectException("Exception while creating Event Hub client", ex);
+        } catch (AuthorizationFailedException ex) {
+            throw new ConnectException("Authorization error. Unable to connect to EventHub", ex);
+        } catch (EventHubException ex) {
+            throw new ConnectException("Exception while creating Event Hub client: " + ex.getMessage(), ex);
+        } catch (IOException ex) {
+            throw new ConnectException("Error while connecting to EventHubs", ex);
         }
     }
 
