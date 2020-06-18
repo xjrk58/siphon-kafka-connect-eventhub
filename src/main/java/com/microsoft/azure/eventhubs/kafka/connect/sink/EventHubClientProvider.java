@@ -6,7 +6,7 @@ import com.microsoft.azure.eventhubs.EventHubClientOptions;
 import com.microsoft.azure.eventhubs.EventHubException;
 
 import java.io.IOException;
-import java.net.URI;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 
@@ -41,8 +41,12 @@ public class EventHubClientProvider {
                     executorService,
                     new EventHubClientOptions()
             ).get();
-        } catch (Exception ex) {
+        } catch (EventHubException ex) {
             throw new IOException("Unable to create token provider", ex);
+        } catch (IOException ex) {
+            throw new IOException("Unable to connect to EventHubs");
+        } catch (ExecutionException|InterruptedException ex) {
+            throw new IOException("Internal error occurred.");
         }
     }
 
