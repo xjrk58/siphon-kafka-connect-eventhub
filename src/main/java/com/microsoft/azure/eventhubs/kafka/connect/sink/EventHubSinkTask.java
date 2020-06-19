@@ -155,7 +155,7 @@ public class EventHubSinkTask extends SinkTask {
             if (rootCause instanceof IOException) {
                 throw (IOException) rootCause;
             } else if (rootCause instanceof EventHubException) {
-                throw (EventHubException) rootCause;;
+                throw (EventHubException) rootCause;
             }
         }
         throw new IOException("Error while executing send" , ex);
