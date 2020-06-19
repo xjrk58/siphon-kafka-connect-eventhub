@@ -114,8 +114,10 @@ public class EventHubSinkTask extends SinkTask {
                 log.info("Created an Event Hub Client");
             }
         } catch (AuthorizationFailedException ex) {
+            log.error("Authorization failed while connecting to EventHub [connectionString=%s]", connectionString);
             throw new ConnectException("Authorization error. Unable to connect to EventHub", ex);
         } catch (EventHubException ex) {
+            log.error("Error occurred while connecting to EventHub [connectionString=%s]", connectionString);
             throw new ConnectException("Exception while creating Event Hub client: " + ex.getMessage(), ex);
         } catch (IOException ex) {
             throw new ConnectException("Error while connecting to EventHubs", ex);
@@ -129,10 +131,33 @@ public class EventHubSinkTask extends SinkTask {
     private void waitForAllUploads(List<CompletableFuture<Void>> resultSet) {
         for(CompletableFuture<Void> result : resultSet) {
             try {
-                result.get();
-            } catch (ExecutionException | InterruptedException ex) {
-                throw new ConnectException("Exception in EventHubSinkTask while sending events", ex);
+                try {
+                    result.get();
+                } catch (ExecutionException|InterruptedException ex) {
+                    findValidRootCause(ex);
+                }
+            } catch (AuthorizationFailedException ex) {
+                log.error("Authorization failed while sending events to EventHub");
+                throw new ConnectException("Authorization error. Unable to connect to EventHub", ex);
+            } catch (EventHubException ex) {
+                log.error("Error occurred while sending events to EventHub");
+                throw new ConnectException("Exception while creating Event Hub client: " + ex.getMessage(), ex);
+            } catch (IOException ex) {
+                throw new ConnectException("Error while connecting to EventHubs", ex);
             }
         }
+    }
+
+    private void findValidRootCause(Exception ex) throws EventHubException, IOException {
+        Throwable rootCause = ex;
+        while (rootCause != null) {
+            rootCause = rootCause.getCause();
+            if (rootCause instanceof IOException) {
+                throw (IOException) rootCause;
+            } else if (rootCause instanceof EventHubException) {
+                throw (EventHubException) rootCause;
+            }
+        }
+        throw new IOException("Error while executing send" , ex);
     }
 }
